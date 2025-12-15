@@ -2,7 +2,7 @@ app:
   name: console
   repo: device-management-toolkit/console
   version: DEVELOPMENT
-  encryption_key: ""
+  encryption_key: "base64encodedkey12345678901234567890123456789012"
   allow_insecure_ciphers: false
 http:
   host: localhost
