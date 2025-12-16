@@ -83,6 +83,8 @@ var (
 	ErrCIRADeviceNotConnected = errors.New("CIRA device not connected/not found")
 	// ErrWsmanMessage is used for wrapping wsman message errors.
 	ErrWsmanMessage = &wsmanError{}
+	// ErrNoWiFiPort is returned when no WiFi port is found on the device.
+	ErrNoWiFiPort = errors.New("no WiFi port found (PhysicalConnectionType=3)")
 )
 
 type wsmanError struct{}
@@ -1959,7 +1961,7 @@ func (c *ConnectionEntry) SetLinkPreference(linkPreference, timeout int) (int, e
 	}
 
 	if wifiInstanceID == "" {
-		return -1, ErrWsmanMessage.Wrap("SetLinkPreference", "find WiFi port", "no WiFi port found (PhysicalConnectionType=3)")
+		return -1, ErrNoWiFiPort
 	}
 
 	// Call SetLinkPreference on the WiFi port
