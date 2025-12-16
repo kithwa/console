@@ -22,24 +22,30 @@ func (r *deviceManagementRoutes) setLinkPreference(c *gin.Context) {
 	}
 
 	response, err := r.d.SetLinkPreference(c.Request.Context(), guid, req)
+
 	if err != nil {
 		r.l.Error(err, "http - v1 - setLinkPreference")
-		// Map specific errors to HTTP status codes (matching MPS implementation)
+		// Handle no WiFi port error with 404 and error message
 		if errors.Is(err, wsman.ErrNoWiFiPort) {
-			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Set Link Preference failed: No WiFi port found for guid : " + guid + ".",
+			})
 			return
 		}
+		// For other errors (device not found, validation, etc.), use standard error response
 		ErrorResponse(c, err)
-
 		return
 	}
 
-	// Map AMT return value to HTTP status code (matching MPS implementation)
-	// MPS logic: null -> 404, -1 or non-zero -> 400, 0 -> 200
-	httpStatus := http.StatusOK
-	if response.ReturnValue == -1 || response.ReturnValue != 0 {
-		httpStatus = http.StatusBadRequest
+	// Map AMT return value to HTTP status code
+	// Non-zero return value -> 400 Bad Request with error message
+	// 0 -> 200 OK with success response
+	if response.ReturnValue != 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Set Link Preference failed for guid : " + guid + ".",
+		})
+		return
 	}
 
-	c.JSON(httpStatus, response)
+	c.JSON(http.StatusOK, response)
 }
