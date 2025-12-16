@@ -31,11 +31,8 @@ func (uc *UseCase) SetLinkPreference(c context.Context, guid string, req dto.Lin
 
 	returnValue, err := device.SetLinkPreference(req.LinkPreference, req.Timeout)
 	if err != nil {
-		return dto.LinkPreferenceResponse{}, err
+		return dto.LinkPreferenceResponse{ReturnValue: returnValue}, err
 	}
 
-	return dto.LinkPreferenceResponse{
-		ReturnValue:    returnValue,
-		ReturnValueStr: dto.GetReturnValueString(returnValue),
-	}, nil
+	return dto.LinkPreferenceResponse{ReturnValue: returnValue}, nil
 }
