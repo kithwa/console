@@ -8,8 +8,7 @@ type LinkPreferenceRequest struct {
 
 // LinkPreferenceResponse represents the response from setting link preference.
 type LinkPreferenceResponse struct {
-	ReturnValue    int    `json:"returnValue"`
-	ReturnValueStr string `json:"returnValueStr"`
+	ReturnValue int `json:"returnValue" example:"0"` // Return code. 0 indicates success
 }
 
 // LinkPreference enumeration values
@@ -18,47 +17,5 @@ const (
 	LinkPreferenceHost = 2 // Host
 )
 
-// Return value constants for SetLinkPreference
-const (
-	ReturnValueSuccess                    = 0
-	ReturnValueNotSupported               = 1
-	ReturnValueUnknownFailed              = 2
-	ReturnValueTimeout                    = 3
-	ReturnValueFailed                     = 4
-	ReturnValueInvalidParameter           = 5
-	ReturnValueInUse                      = 6
-	ReturnValueTransitionStarted          = 4096
-	ReturnValueInvalidStateTransition     = 4097
-	ReturnValueTimeoutParameterNotSupport = 4098
-	ReturnValueBusy                       = 4099
-)
-
-// GetReturnValueString returns a human-readable string for the return value.
-func GetReturnValueString(returnValue int) string {
-	switch returnValue {
-	case ReturnValueSuccess:
-		return "SUCCESS"
-	case ReturnValueNotSupported:
-		return "NOT_SUPPORTED"
-	case ReturnValueUnknownFailed:
-		return "UNKNOWN_FAILED"
-	case ReturnValueTimeout:
-		return "TIMEOUT"
-	case ReturnValueFailed:
-		return "FAILED"
-	case ReturnValueInvalidParameter:
-		return "INVALID_PARAMETER"
-	case ReturnValueInUse:
-		return "IN_USE"
-	case ReturnValueTransitionStarted:
-		return "TRANSITION_STARTED"
-	case ReturnValueInvalidStateTransition:
-		return "INVALID_STATE_TRANSITION"
-	case ReturnValueTimeoutParameterNotSupport:
-		return "TIMEOUT_PARAMETER_NOT_SUPPORT"
-	case ReturnValueBusy:
-		return "BUSY"
-	default:
-		return "UNKNOWN"
-	}
-}
+// Console-specific return value for no WiFi port found
+const ReturnValueNoWiFiPort = -1
