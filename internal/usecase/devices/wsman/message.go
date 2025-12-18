@@ -1936,7 +1936,7 @@ func (c *ConnectionEntry) SetIPSKVMRedirectionSettingData(req *kvmredirection.KV
 // linkPreference: 1 for ME, 2 for Host
 // timeout: timeout in seconds
 // Returns the return value from the AMT device or an error.
-func (c *ConnectionEntry) SetLinkPreference(linkPreference, timeout int) (int, error) {
+func (c *ConnectionEntry) SetLinkPreference(linkPreference, timeout uint32) (int, error) {
 	// Get all ethernet port settings to find WiFi port
 	enumResponse, err := c.WsmanMessages.AMT.EthernetPortSettings.Enumerate()
 	if err != nil {
