@@ -61,9 +61,9 @@ func TestSetLinkPreference(t *testing.T) {
 			manMock: func(man *mocks.MockWSMAN, man2 *mocks.MockManagement) {
 				man.EXPECT().
 					SetupWsmanClient(gomock.Any(), false, true).
-					Return(man2, nil)
+					Return(wsman.Management(man2), nil)
 				man2.EXPECT().
-					SetLinkPreference(1, 300).
+					SetLinkPreference(uint32(1), uint32(300)).
 					Return(0, nil)
 			},
 			repoMock: func(repo *mocks.MockDeviceManagementRepository) {
@@ -83,9 +83,9 @@ func TestSetLinkPreference(t *testing.T) {
 			manMock: func(man *mocks.MockWSMAN, man2 *mocks.MockManagement) {
 				man.EXPECT().
 					SetupWsmanClient(gomock.Any(), false, true).
-					Return(man2, nil)
+					Return(wsman.Management(man2), nil)
 				man2.EXPECT().
-					SetLinkPreference(2, 60).
+					SetLinkPreference(uint32(2), uint32(60)).
 					Return(0, nil)
 			},
 			repoMock: func(repo *mocks.MockDeviceManagementRepository) {
@@ -116,7 +116,7 @@ func TestSetLinkPreference(t *testing.T) {
 					SetupWsmanClient(gomock.Any(), false, true).
 					Return(man2, nil)
 				man2.EXPECT().
-					SetLinkPreference(1, 300).
+					SetLinkPreference(uint32(1), uint32(300)).
 					Return(-1, wsman.ErrNoWiFiPort)
 			},
 			repoMock: func(repo *mocks.MockDeviceManagementRepository) {
@@ -135,7 +135,7 @@ func TestSetLinkPreference(t *testing.T) {
 					SetupWsmanClient(gomock.Any(), false, true).
 					Return(man2, nil)
 				man2.EXPECT().
-					SetLinkPreference(1, 300).
+					SetLinkPreference(uint32(1), uint32(300)).
 					Return(5, errors.New("invalid parameter"))
 			},
 			repoMock: func(repo *mocks.MockDeviceManagementRepository) {
@@ -154,7 +154,7 @@ func TestSetLinkPreference(t *testing.T) {
 					SetupWsmanClient(gomock.Any(), false, true).
 					Return(man2, nil)
 				man2.EXPECT().
-					SetLinkPreference(1, 300).
+					SetLinkPreference(uint32(1), uint32(300)).
 					Return(0, ErrGeneral)
 			},
 			repoMock: func(repo *mocks.MockDeviceManagementRepository) {

@@ -735,7 +735,7 @@ func (mr *MockManagementMockRecorder) SetKVMRedirection(enable any) *gomock.Call
 }
 
 // SetLinkPreference mocks base method.
-func (m *MockManagement) SetLinkPreference(linkPreference, timeout int) (int, error) {
+func (m *MockManagement) SetLinkPreference(linkPreference, timeout uint32) (int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetLinkPreference", linkPreference, timeout)
 	ret0, _ := ret[0].(int)
