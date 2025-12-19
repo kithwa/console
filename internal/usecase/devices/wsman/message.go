@@ -81,21 +81,9 @@ var (
 
 	// ErrCIRADeviceNotConnected is returned when a CIRA device is not connected or not found.
 	ErrCIRADeviceNotConnected = errors.New("CIRA device not connected/not found")
-	// ErrWsmanMessage is used for wrapping wsman message errors.
-	ErrWsmanMessage = &wsmanError{}
 	// ErrNoWiFiPort is returned when no WiFi interface is found on the device.
 	ErrNoWiFiPort = errors.New("no WiFi interface found (InstanceID == Intel(r) AMT Ethernet Port Settings 1)")
 )
-
-type wsmanError struct{}
-
-func (e *wsmanError) Error() string {
-	return "wsman message error"
-}
-
-func (e *wsmanError) Wrap(operation, context, message string) error {
-	return errors.New(operation + ": " + context + ": " + message)
-}
 
 type ConnectionEntry struct {
 	WsmanMessages wsman.Messages
