@@ -8,7 +8,7 @@ type LinkPreferenceRequest struct {
 
 // LinkPreferenceResponse represents the response from setting link preference.
 type LinkPreferenceResponse struct {
-	ReturnValue int `json:"returnValue" example:"0"` // Return code. 0 indicates success, -1 for no WiFi port
+	ReturnValue int `json:"returnValue" example:"0"` // Return code. 0 indicates success, -1 for no WiFi interface
 }
 
 // LinkPreference enumeration values
@@ -17,5 +17,5 @@ const (
 	LinkPreferenceHost = 2 // Host
 )
 
-// Console-specific return value for no WiFi port found
+// Console-specific return value for no WiFi interface found
 const ReturnValueNoWiFiPort = -1
