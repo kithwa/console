@@ -25,6 +25,7 @@ func TestSetLinkPreferenceHandler(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 	engine := gin.New()
+
 	handler := engine.Group("/api/v1")
 
 	// Use NewAmtRoutes to register the route
@@ -36,11 +37,14 @@ func TestSetLinkPreferenceHandler(t *testing.T) {
 		Return(dto.LinkPreferenceResponse{ReturnValue: 0}, nil)
 
 	body := `{"linkPreference":1,"timeout":60}`
+
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/amt/network/linkPreference/my-guid", bytes.NewBufferString(body))
 	req.Header.Set("Content-Type", "application/json")
+
 	w := httptest.NewRecorder()
 
 	engine.ServeHTTP(w, req)
+
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected 200 OK, got %d body=%s", w.Code, w.Body.String())
 	}
@@ -57,9 +61,11 @@ func TestSetLinkPreferenceHandler(t *testing.T) {
 
 	req = httptest.NewRequest(http.MethodPost, "/api/v1/amt/network/linkPreference/my-guid", bytes.NewBufferString(body))
 	req.Header.Set("Content-Type", "application/json")
+
 	w = httptest.NewRecorder()
 
 	engine.ServeHTTP(w, req)
+
 	if w.Code != http.StatusBadRequest {
 		t.Fatalf("expected 400 Bad Request, got %d body=%s", w.Code, w.Body.String())
 	}
@@ -76,9 +82,11 @@ func TestSetLinkPreferenceHandler(t *testing.T) {
 
 	req = httptest.NewRequest(http.MethodPost, "/api/v1/amt/network/linkPreference/my-guid", bytes.NewBufferString(body))
 	req.Header.Set("Content-Type", "application/json")
+
 	w = httptest.NewRecorder()
 
 	engine.ServeHTTP(w, req)
+
 	if w.Code != http.StatusNotFound {
 		t.Fatalf("expected 404 Not Found, got %d body=%s", w.Code, w.Body.String())
 	}

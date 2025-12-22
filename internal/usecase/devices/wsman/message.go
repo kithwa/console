@@ -1938,6 +1938,7 @@ func (c *ConnectionEntry) SetLinkPreference(linkPreference, timeout uint32) (int
 
 	// Prefer fixed InstanceID for WiFi interface (do not rely on PhysicalConnectionType)
 	const wifiInstanceIDConst = "Intel(r) AMT Ethernet Port Settings 1"
+
 	var wifiInstanceID string
 
 	for i := range pullResponse.Body.PullResponse.EthernetPortItems {

@@ -22,7 +22,6 @@ func (r *deviceManagementRoutes) setLinkPreference(c *gin.Context) {
 	}
 
 	response, err := r.d.SetLinkPreference(c.Request.Context(), guid, req)
-
 	if err != nil {
 		r.l.Error(err, "http - v1 - setLinkPreference")
 		// Handle no WiFi port error with 404 and error message
