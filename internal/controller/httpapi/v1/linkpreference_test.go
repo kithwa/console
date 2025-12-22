@@ -24,6 +24,7 @@ func TestSetLinkPreferenceHandler(t *testing.T) {
 	devMock := mocks.NewMockDeviceManagementFeature(mockCtl)
 
 	gin.SetMode(gin.TestMode)
+
 	engine := gin.New()
 
 	handler := engine.Group("/api/v1")
