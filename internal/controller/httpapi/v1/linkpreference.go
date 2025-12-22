@@ -30,10 +30,12 @@ func (r *deviceManagementRoutes) setLinkPreference(c *gin.Context) {
 			c.JSON(http.StatusNotFound, gin.H{
 				"error": "Set Link Preference failed for guid: " + guid + ". - " + err.Error(),
 			})
+
 			return
 		}
 		// For other errors (device not found, validation, etc.), use standard error response
 		ErrorResponse(c, err)
+
 		return
 	}
 
@@ -44,6 +46,7 @@ func (r *deviceManagementRoutes) setLinkPreference(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Set Link Preference failed for guid: " + guid + ".",
 		})
+
 		return
 	}
 

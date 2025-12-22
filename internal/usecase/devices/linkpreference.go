@@ -23,7 +23,9 @@ func (uc *UseCase) SetLinkPreference(c context.Context, guid string, req dto.Lin
 	}
 
 	// Validate timeout
-	if req.Timeout > 65535 {
+	const maxTimeout = 65535
+
+	if req.Timeout > maxTimeout {
 		return dto.LinkPreferenceResponse{}, ErrValidationUseCase.Wrap("SetLinkPreference", "validate timeout", "timeout max value is 65535")
 	}
 

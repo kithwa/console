@@ -1945,6 +1945,7 @@ func (c *ConnectionEntry) SetLinkPreference(linkPreference, timeout uint32) (int
 		// Select by InstanceID only
 		if port.InstanceID == wifiInstanceIDConst {
 			wifiInstanceID = port.InstanceID
+
 			break
 		}
 	}
