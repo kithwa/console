@@ -16,7 +16,6 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres" // postgres driver
 	dbdbdb "github.com/golang-migrate/migrate/v4/database/sqlite"
 	"github.com/golang-migrate/migrate/v4/source"
-	_ "github.com/golang-migrate/migrate/v4/source/file" // for file source
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	_ "modernc.org/sqlite" // sqlite3 driver
 
@@ -101,10 +100,25 @@ func setupLocalDB(migrationsSource source.Driver) error {
 	if err != nil {
 		return err
 	}
+	defer m.Close()
 
 	err = m.Up()
 	if err != nil {
-		if !errors.Is(err, migrate.ErrNoChange) {
+		var dirtyErr migrate.ErrDirty
+		if errors.As(err, &dirtyErr) {
+			log.Printf("Dirty database version found. Forcing to previous version and retrying.")
+
+			if dirtyErr.Version > 0 {
+				if forceErr := m.Force(dirtyErr.Version - 1); forceErr != nil {
+					return fmt.Errorf("failed to force database version: %w", forceErr)
+				}
+				if upErr := m.Up(); upErr != nil && !errors.Is(upErr, migrate.ErrNoChange) {
+					return fmt.Errorf("failed to migrate up after forcing: %w", upErr)
+				}
+			} else {
+				return err
+			}
+		} else if !errors.Is(err, migrate.ErrNoChange) {
 			return err
 		}
 	}
@@ -143,12 +157,27 @@ func setupHostedDB(migrationsSource source.Driver, databaseURL string) error {
 	if err != nil {
 		return MigrationError(fmt.Sprintf("postgres connect error: %s", err))
 	}
-
-	err = m.Up()
 	defer m.Close()
 
-	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		return MigrationError(fmt.Sprintf("up error: %s", err))
+	err = m.Up()
+	if err != nil {
+		var dirtyErr migrate.ErrDirty
+		if errors.As(err, &dirtyErr) {
+			log.Printf("Dirty database version found. Forcing to previous version and retrying.")
+
+			if dirtyErr.Version > 0 {
+				if forceErr := m.Force(dirtyErr.Version - 1); forceErr != nil {
+					return fmt.Errorf("failed to force database version: %w", forceErr)
+				}
+				if upErr := m.Up(); upErr != nil && !errors.Is(upErr, migrate.ErrNoChange) {
+					return fmt.Errorf("failed to migrate up after forcing: %w", upErr)
+				}
+			} else {
+				return err
+			}
+		} else if !errors.Is(err, migrate.ErrNoChange) {
+			return MigrationError(fmt.Sprintf("up error: %s", err))
+		}
 	}
 
 	if errors.Is(err, migrate.ErrNoChange) {
