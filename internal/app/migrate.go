@@ -74,7 +74,7 @@ func setupLocalDB(migrationsSource source.Driver) error {
 
 	if _, err = os.Stat(consoleDir); os.IsNotExist(err) {
 		if err1 := os.Mkdir(consoleDir, _directoryPermission); err1 != nil {
-			return err1
+			return fmt.Errorf("failed to create config directory: %w", err1)
 		}
 	}
 
@@ -87,7 +87,7 @@ func setupLocalDB(migrationsSource source.Driver) error {
 
 	defer func() {
 		if err1 := db.Close(); err1 != nil {
-			return
+			log.Printf("error closing local db: %v", err1)
 		}
 	}()
 
@@ -102,24 +102,53 @@ func setupLocalDB(migrationsSource source.Driver) error {
 	}
 	defer m.Close()
 
-	err = m.Up()
+	versions, latestVersion, err := collectMigrationVersions(migrationsSource)
 	if err != nil {
-		var dirtyErr migrate.ErrDirty
-		if errors.As(err, &dirtyErr) {
-			log.Printf("Dirty database version found. Forcing to previous version and retrying.")
+		return fmt.Errorf("failed to read embedded migrations: %w", err)
+	}
 
-			if dirtyErr.Version > 0 {
-				if forceErr := m.Force(dirtyErr.Version - 1); forceErr != nil {
-					return fmt.Errorf("failed to force database version: %w", forceErr)
+	currentVersion, dirty, err := m.Version()
+	if errors.Is(err, migrate.ErrNilVersion) {
+		currentVersion = 0
+		err = nil
+	}
+	if err != nil {
+		return fmt.Errorf("failed to read current migration version: %w", err)
+	}
+
+	skipMigrations := false
+	if !dirty {
+		if currentVersion > latestVersion {
+			log.Printf("Database version %d is newer than bundled migrations (%d); skipping migration (likely downgrade).", currentVersion, latestVersion)
+			skipMigrations = true
+		} else if currentVersion > 0 {
+			if _, ok := versions[currentVersion]; !ok {
+				log.Printf("Database version %d not found in bundled migrations (latest %d); skipping migration to avoid downgrading.", currentVersion, latestVersion)
+				skipMigrations = true
+			}
+		}
+	}
+
+	if !skipMigrations {
+		err = m.Up()
+		if err != nil {
+			var dirtyErr migrate.ErrDirty
+			if errors.As(err, &dirtyErr) {
+				log.Printf("Dirty database version found. Forcing to previous version and retrying.")
+
+				if dirtyErr.Version > 0 {
+					if forceErr := m.Force(dirtyErr.Version - 1); forceErr != nil {
+						return fmt.Errorf("failed to force database version: %w", forceErr)
+					}
+					if upErr := m.Up(); upErr != nil && !errors.Is(upErr, migrate.ErrNoChange) {
+						return fmt.Errorf("failed to migrate up after forcing: %w", upErr)
+					}
+				} else {
+					return err
 				}
-				if upErr := m.Up(); upErr != nil && !errors.Is(upErr, migrate.ErrNoChange) {
-					return fmt.Errorf("failed to migrate up after forcing: %w", upErr)
-				}
-			} else {
+			} else if !errors.Is(err, migrate.ErrNoChange) {
 				return err
 			}
-		} else if !errors.Is(err, migrate.ErrNoChange) {
-			return err
 		}
 	}
 
@@ -127,8 +156,6 @@ func setupLocalDB(migrationsSource source.Driver) error {
 	if err != nil {
 		return err
 	}
-
-	defer m.Close()
 
 	return nil
 }
@@ -159,24 +186,53 @@ func setupHostedDB(migrationsSource source.Driver, databaseURL string) error {
 	}
 	defer m.Close()
 
-	err = m.Up()
+	versions, latestVersion, err := collectMigrationVersions(migrationsSource)
 	if err != nil {
-		var dirtyErr migrate.ErrDirty
-		if errors.As(err, &dirtyErr) {
-			log.Printf("Dirty database version found. Forcing to previous version and retrying.")
+		return fmt.Errorf("failed to read embedded migrations: %w", err)
+	}
 
-			if dirtyErr.Version > 0 {
-				if forceErr := m.Force(dirtyErr.Version - 1); forceErr != nil {
-					return fmt.Errorf("failed to force database version: %w", forceErr)
-				}
-				if upErr := m.Up(); upErr != nil && !errors.Is(upErr, migrate.ErrNoChange) {
-					return fmt.Errorf("failed to migrate up after forcing: %w", upErr)
-				}
-			} else {
-				return err
+	currentVersion, dirty, err := m.Version()
+	if errors.Is(err, migrate.ErrNilVersion) {
+		currentVersion = 0
+		err = nil
+	}
+	if err != nil {
+		return fmt.Errorf("failed to read current migration version: %w", err)
+	}
+
+	skipMigrations := false
+	if !dirty {
+		if currentVersion > latestVersion {
+			log.Printf("Database version %d is newer than bundled migrations (%d); skipping migration (likely downgrade).", currentVersion, latestVersion)
+			skipMigrations = true
+		} else if currentVersion > 0 {
+			if _, ok := versions[currentVersion]; !ok {
+				log.Printf("Database version %d not found in bundled migrations (latest %d); skipping migration to avoid downgrading.", currentVersion, latestVersion)
+				skipMigrations = true
 			}
-		} else if !errors.Is(err, migrate.ErrNoChange) {
-			return MigrationError(fmt.Sprintf("up error: %s", err))
+		}
+	}
+
+	if !skipMigrations {
+		err = m.Up()
+		if err != nil {
+			var dirtyErr migrate.ErrDirty
+			if errors.As(err, &dirtyErr) {
+				log.Printf("Dirty database version found. Forcing to previous version and retrying.")
+
+				if dirtyErr.Version > 0 {
+					if forceErr := m.Force(dirtyErr.Version - 1); forceErr != nil {
+						return fmt.Errorf("failed to force database version: %w", forceErr)
+					}
+					if upErr := m.Up(); upErr != nil && !errors.Is(upErr, migrate.ErrNoChange) {
+						return fmt.Errorf("failed to migrate up after forcing: %w", upErr)
+					}
+				} else {
+					return err
+				}
+			} else if !errors.Is(err, migrate.ErrNoChange) {
+				return MigrationError(fmt.Sprintf("up error: %s", err))
+			}
 		}
 	}
 
@@ -189,4 +245,28 @@ func setupHostedDB(migrationsSource source.Driver, databaseURL string) error {
 	log.Printf("Migrate: up success")
 
 	return nil
+}
+
+func collectMigrationVersions(migrationsSource source.Driver) (map[uint]struct{}, uint, error) {
+	first, err := migrationsSource.First()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	versions := map[uint]struct{}{first: {}}
+	latest := first
+
+	for {
+		next, err := migrationsSource.Next(latest)
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				return versions, latest, nil
+			}
+
+			return nil, 0, err
+		}
+
+		versions[next] = struct{}{}
+		latest = next
+	}
 }
